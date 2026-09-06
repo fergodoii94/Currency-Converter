@@ -1,34 +1,55 @@
+"""EUR/BRL currency conversion using a public exchange-rate endpoint."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
+
 import requests
 
+
+@dataclass(frozen=True)
+class ExchangeRate:
+    base: str
+    target: str
+    bid: Decimal
+
+
 class CurrencyConverter:
-    def __init__(self):
-        self.api_url = "https://economia.awesomeapi.com.br/last/"
+    API_URL = "https://economia.awesomeapi.com.br/last"
 
-    def get_exchange_rate(self, base, target):
-        try:
-            response = requests.get(f"{self.api_url}{base}-{target}")
-            response.raise_for_status()
-            data = response.json()
-            return float(data[f"{base}{target}"]['bid'])
-        except Exception as e:
-            print(f"Error fetching data: {e}")
-            return None
+    def __init__(self, timeout: float = 10.0) -> None:
+        self.timeout = timeout
 
-    def convert(self, amount, rate):
-        return amount * rate
+    def get_exchange_rate(self, base: str, target: str) -> ExchangeRate:
+        pair = f"{base.upper()}-{target.upper()}"
+        response = requests.get(f"{self.API_URL}/{pair}", timeout=self.timeout)
+        response.raise_for_status()
+        data = response.json()
+        quote = data[f"{base.upper()}{target.upper()}"]
+        return ExchangeRate(base.upper(), target.upper(), Decimal(str(quote["bid"])))
 
-def main():
+    @staticmethod
+    def convert(amount: Decimal, rate: ExchangeRate) -> Decimal:
+        if amount < 0:
+            raise ValueError("Amount cannot be negative")
+        return amount * rate.bid
+
+
+def main() -> None:
     converter = CurrencyConverter()
-    print("--- Professional Currency Converter (EUR <-> BRL) ---")
     try:
         rate = converter.get_exchange_rate("EUR", "BRL")
-        if rate:
-            print(f"Current Rate: 1 EUR = {rate:.4f} BRL")
-            amount = float(input("Enter amount in EUR: "))
-            result = converter.convert(amount, rate)
-            print(f"Converted Amount: {result:.2f} BRL")
-    except ValueError:
-        print("Invalid input. Please enter a numeric value.")
+        raw_amount = input("Amount in EUR: ").strip().replace(",", ".")
+        amount = Decimal(raw_amount)
+        result = converter.convert(amount, rate)
+        print(f"1 {rate.base} = {rate.bid:.4f} {rate.target}")
+        print(f"Converted amount: {result:.2f} {rate.target}")
+    except (InvalidOperation, ValueError) as exc:
+        print(f"Invalid input: {exc}")
+    except requests.RequestException as exc:
+        print(f"Exchange-rate service unavailable: {exc}")
+
 
 if __name__ == "__main__":
     main()
