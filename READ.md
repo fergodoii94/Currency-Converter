@@ -1,19 +1,36 @@
-# Real-time Currency Exchange Tool 💶🇧🇷
+# Currency Converter
 
-## Description
-A professional Python-based tool that integrates with a real-time financial API to provide accurate currency conversion between Euro (EUR) and Brazilian Real (BRL).
+A focused Python CLI for EUR/BRL conversion using a public exchange-rate API.
 
-## Key Features
-- **API Integration:** Real-time data fetching using the `requests` library.
-- **Error Handling:** Robust implementation of try-except blocks to handle network failures.
-- **Clean Architecture:** Implemented using Object-Oriented Programming (OOP) for better scalability.
+## Features
 
-## Tech Stack
-- Python 3.x
-- Requests Library
-- JSON API
+- Live quote retrieval from the configured API
+- HTTP timeout and status validation
+- `Decimal` for monetary calculations
+- Explicit handling of invalid input and network failures
+- Small service class that is easy to extend and test
 
-## How to Run
-1. Clone the repository: `git clone https://github.com/fergodoii94/currency-exchange-api.git`
-2. Install dependencies: `pip install requests`
-3. Run the app: `python main.py`
+## Run
+
+```bash
+pip install requests
+python main.py
+```
+
+The application currently demonstrates EUR → BRL conversion. The service class can be extended to support additional currency pairs.
+
+## Architecture
+
+`CurrencyConverter` handles external API communication and conversion logic. `main()` is responsible only for the CLI interaction and user-facing error handling.
+
+## Stack
+
+Python · Requests · Decimal · Dataclasses
+
+## Roadmap
+
+- Automated tests
+- Configurable API provider
+- Multi-pair CLI selection
+- API/web interface
+- Rate caching and resilience policies
